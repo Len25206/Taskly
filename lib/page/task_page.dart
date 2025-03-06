@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+String? _newTaskContent;
+late BuildContext _buildContext;
+late double _deviceHeight;
+late double _deviceWidth;
 
 class Taskly extends StatefulWidget {
   @override
@@ -8,14 +14,12 @@ class Taskly extends StatefulWidget {
 }
 
 class _HomePageState extends State<Taskly> {
-  late double _deviceHeight;
-  late double _deviceWidth;
-
   @override
   Widget build(BuildContext context) {
+    print("the new task is $_newTaskContent");
+    _buildContext = context;
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -33,6 +37,11 @@ class _HomePageState extends State<Taskly> {
       floatingActionButton: _AddTaskButton(context),
     );
   }
+}
+
+Widget _taskView() {
+  Hive.openBox("task");
+  return _TaskList();
 }
 
 Widget _TaskList() {
@@ -53,29 +62,42 @@ Widget _ListTiles() {
 
 Widget _AddTaskButton(BuildContext context) {
   return FloatingActionButton(
-    onPressed: () {
-      _displayTask(context);
-    },
+    onPressed: _displayTask,
     backgroundColor: Colors.pink,
     child: const Icon(Icons.add),
   );
 }
 
-void _displayTask(BuildContext context) {
+void _displayTask() {
   showDialog(
-    context: context,
+    context: _buildContext,
     builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Add Task'),
-        content: Text('This is where you can add a task!'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Close'),
-          ),
-        ],
+      return StatefulBuilder(
+        builder: (context, StateSetter setState) {
+          return AlertDialog(
+            title: Text('Add Task'),
+            content: TextField(
+              onSubmitted: (_value) {
+                if (_newTaskContent != null) {
+                  _newTaskContent = "";
+                }
+                _newTaskContent = _value;
+                Navigator.of(context).pop();
+              },
+              onChanged: (_value) {
+                setState(() {});
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("close"),
+              ),
+            ],
+          );
+        },
       );
     },
   );
