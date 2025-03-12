@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 String? _newTaskContent;
 late BuildContext _buildContext;
@@ -33,15 +32,23 @@ class _HomePageState extends State<Taskly> {
         backgroundColor: Colors.pink,
         toolbarHeight: _deviceHeight * 0.10,
       ),
-      body: _TaskList(),
+      body: _taskView(),
       floatingActionButton: _AddTaskButton(context),
     );
   }
 }
 
 Widget _taskView() {
-  Hive.openBox("task");
-  return _TaskList();
+  return FutureBuilder(
+    future: Future.delayed(Duration(seconds: 2)),
+    builder: (BuildContext _context, AsyncSnapshot _snapShot) {
+      if (_snapShot.connectionState == ConnectionState.done) {
+        return _TaskList();
+      } else {
+        return CircularProgressIndicator();
+      }
+    },
+  );
 }
 
 Widget _TaskList() {
@@ -85,7 +92,9 @@ void _displayTask() {
                 Navigator.of(context).pop();
               },
               onChanged: (_value) {
-                setState(() {});
+                setState(() {
+                  _newTaskContent = _value;
+                });
               },
             ),
             actions: [
